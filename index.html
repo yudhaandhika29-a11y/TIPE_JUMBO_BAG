@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Library - PT Visi Prima Artha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-white: #FFFFFF;
+            --primary-teal: #0F7A8A;
+            --secondary-blue: #5BC2DA;
+            --text-dark: #2C3E50;
+            --gray-light: #F4F7F6;
+            --border-color: #EAEAEA;
+            --danger-red: #E74C3C;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-white); color: var(--text-dark); line-height: 1.5; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5%; background-color: var(--bg-white);
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .logo-area h1 { color: var(--primary-teal); font-size: 1.4rem; font-weight: 800; letter-spacing: 1px;}
+        .btn-admin {
+            background-color: var(--primary-teal); color: var(--bg-white);
+            border: none; padding: 10px 20px; border-radius: 4px;
+            cursor: pointer; font-weight: 600; transition: background 0.3s ease;
+        }
+        .btn-admin:hover { background-color: #0b5c68; }
+
+        .sub-header { background-color: var(--primary-teal); color: var(--bg-white); padding: 1rem 5%; text-align: center; font-size: 1.5rem; font-weight: bold; }
+
+        .hero { position: relative; background-color: var(--gray-light); overflow: hidden; padding: 4rem 5%; display: flex; align-items: center; min-height: 300px; }
+        .hero-diagonal {
+            position: absolute; top: 0; right: 0; width: 45%; height: 100%;
+            background-color: var(--secondary-blue);
+            clip-path: polygon(25% 0, 100% 0, 100% 100%, 0% 100%); z-index: 1;
+        }
+        .hero-content { position: relative; z-index: 2; width: 100%; max-width: 600px; }
+        .hero-content h2 { color: var(--primary-teal); font-size: 2rem; margin-bottom: 1rem; }
+        
+        .search-box {
+            display: flex; width: 100%; background: var(--bg-white); border-radius: 50px; padding: 5px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid transparent; transition: border 0.3s;
+        }
+        .search-box:focus-within { border-color: var(--secondary-blue); }
+        .search-box input { flex: 1; border: none; outline: none; padding: 15px 10px; font-size: 1.1rem; color: var(--text-dark); background: transparent; }
+
+        .type-nav { display: flex; justify-content: center; gap: 1rem; padding: 2.5rem 5%; background-color: var(--bg-white); flex-wrap: wrap; }
+        .type-btn {
+            background: var(--bg-white); border: 2px solid var(--border-color); color: var(--text-dark); padding: 10px 25px; font-size: 1rem; font-weight: 600; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .type-btn:hover { border-color: var(--secondary-blue); color: var(--secondary-blue); }
+        .type-btn.active { background-color: var(--secondary-blue); border-color: var(--secondary-blue); color: var(--bg-white); }
+
+        .container { padding: 0 5% 4rem; max-width: 1200px; margin: auto; min-height: 400px; }
+        .grid-katalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
+        .card {
+            background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(15, 122, 138, 0.15); border-color: var(--secondary-blue); }
+        
+        .card-pdf-icon { width: 100%; height: 200px; background-color: var(--gray-light); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: var(--primary-teal); border-bottom: 2px solid var(--primary-teal); }
+        .card-body { padding: 1.2rem; text-align: center; }
+        .card-title { color: var(--primary-teal); font-size: 1.2rem; font-weight: 700; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--bg-white); padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .btn-delete {
+            background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--danger-red); transition: transform 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+        .btn-delete:hover { transform: scale(1.1); }
+        .btn-delete span { font-size: 0.9rem; font-weight: 600; }
+        .close-btn { font-size: 2rem; cursor: pointer; color: #aaa; line-height: 1; }
+        .close-btn:hover { color: var(--primary-teal); }
+        
+        .modal-pdf { width: 100%; height: 400px; border: 1px solid var(--border-color); border-radius: 6px; margin: 1rem 0; }
+        
+        .btn-action {
+            display: block; width: 100%; padding: 15px; background-color: var(--primary-teal); color: var(--bg-white); font-size: 1.1rem; font-weight: bold; text-align: center; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.3s;
+        }
+        .btn-action:hover { background-color: #0b5c68; }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary-teal); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; background-color: var(--gray-light); }
+        .form-control:focus { outline: none; border-color: var(--secondary-blue); background-color: var(--bg-white); }
+        .no-data { grid-column: 1/-1; text-align: center; color: #777; font-size: 1.1rem; padding: 2rem; }
+        
+        .loader { display: none; text-align: center; padding: 2rem; color: var(--primary-teal); font-weight: bold; }
+
+        @media (max-width: 768px) { .hero-diagonal { opacity: 0.3; width: 100%; clip-path: none; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area"><h1>VISI PRIMA ARTHA</h1></div>
+        <button class="btn-admin" onclick="openAdminModal()">Kelola Drawing</button>
+    </header>
+
+    <div class="sub-header">Database Drawing Jumbo Bag</div>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h2>Cari Spesifikasi & Drawing</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Ketik Tipe Bag (Contoh: JB-101)..." onkeyup="liveSearch()">
+            </div>
+        </div>
+        <div class="hero-diagonal"></div>
+    </div>
+
+    <div class="type-nav">
+        <button class="type-btn active" onclick="filterByTipe('A', this)">TIPE A</button>
+        <button class="type-btn" onclick="filterByTipe('B', this)">TIPE B</button>
+        <button class="type-btn" onclick="filterByTipe('C', this)">TIPE C</button>
+        <button class="type-btn" onclick="filterByTipe('D', this)">TIPE D</button>
+    </div>
+
+    <div class="container">
+        <div id="loader" class="loader">Memuat data dari database...</div>
+        <div class="grid-katalog" id="katalog"></div>
+    </div>
+
+    <!-- Modal Detail PDF -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header-actions">
+                <button class="btn-delete" id="btnDelete" onclick="deleteDrawing()">🗑️ <span>Hapus</span></button>
+                <span class="close-btn" onclick="closeModal('detailModal')">&times;</span>
+            </div>
+            
+            <h2 id="modalTitle" style="color: var(--primary-teal); font-size: 1.8rem;">TIPE BAG</h2>
+            <p id="modalKeterangan" style="color: #555; margin-top: 5px; line-height: 1.6;"></p>
+            
+            <iframe id="modalPdf" class="modal-pdf" src=""></iframe>
+            
+            <a href="#" id="waShareBtn" target="_blank" class="btn-action">Bagikan Link ke WhatsApp</a>
+        </div>
+    </div>
+
+    <!-- Modal Form Upload/Update -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('adminModal')" style="position: absolute; right: 20px; top: 15px;">&times;</span>
+            <h2 style="color: var(--primary-teal); margin-bottom: 1.5rem; text-align: center;">Upload / Update File PDF</h2>
+            
+            <form id="uploadForm" onsubmit="handleUpload(event)">
+                <div class="form-group">
+                    <label>Tipe Bag (Contoh: JB-101)</label>
+                    <input type="text" id="inputKode" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Kategori (Tipe)</label>
+                    <select id="inputTipe" class="form-control" required>
+                        <option value="A">TIPE A</option>
+                        <option value="B">TIPE B</option>
+                        <option value="C">TIPE C</option>
+                        <option value="D">TIPE D</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <textarea id="inputKeterangan" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>File Drawing (Wajib format .PDF)</label>
+                    <input type="file" id="inputFile" class="form-control" accept="application/pdf" required>
+                </div>
+                <button type="submit" id="btnSubmit" class="btn-action" style="margin-top: 1rem;">Upload ke Database</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://gzrvnxanmawmyrrefyjb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6cnZueGFubWF3bXlycmVmeWpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyNDMzMTAsImV4cCI6MjEwNDgxOTMxMH0.Y4ucP7qnXmgIKGZAWL_TnQc44ni1fzqXPZdYkfCidJw';
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let database = [];
+        let currentActiveType = 'A';
+        let currentActiveItem = null;
+
+        async function fetchData() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('katalog').innerHTML = '';
+            
+            const { data, error } = await client.from('katalog_drawing').select('*');
+            document.getElementById('loader').style.display = 'none';
+
+            if (error) {
+                alert("Gagal mengambil data dari database!");
+                console.error(error);
+                return;
+            }
+
+            database = data || [];
+            const activeBtn = Array.from(document.querySelectorAll('.type-btn')).find(btn => btn.innerText.includes(currentActiveType));
+            filterByTipe(currentActiveType, activeBtn);
+        }
+
+        function renderKatalog(data) {
+            const katalog = document.getElementById('katalog');
+            katalog.innerHTML = '';
+            
+            if(data.length === 0) {
+                katalog.innerHTML = `<div class="no-data">Drawing tidak ditemukan.</div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                katalog.innerHTML += `
+                    <div class="card" onclick="openDetail('${item.kode_model}')">
+                        <div class="card-pdf-icon">📄</div>
+                        <div class="card-body">
+                            <h3 class="card-title">${item.kode_model}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterByTipe(tipe, btnElement) {
+            currentActiveType = tipe;
+            document.getElementById('searchInput').value = ''; 
+            
+            if(btnElement) {
+                document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+                btnElement.classList.add('active');
+            }
+
+            const filteredData = database.filter(item => item.tipe === tipe);
+            renderKatalog(filteredData);
+        }
+
+        function liveSearch() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+
+            if (keyword === "") {
+                const activeBtn = Array.from(document.querySelectorAll('.type-btn')).find(btn => btn.innerText.includes(currentActiveType));
+                if(activeBtn) activeBtn.classList.add('active');
+                filterByTipe(currentActiveType, activeBtn);
+                return;
+            }
+
+            const searchData = database.filter(item => item.kode_model.toLowerCase().includes(keyword));
+            renderKatalog(searchData);
+        }
+
+        function openDetail(kode) {
+            const item = database.find(b => b.kode_model === kode);
+            currentActiveItem = item; 
+
+            document.getElementById('modalTitle').innerText = item.kode_model;
+            document.getElementById('modalKeterangan').innerText = item.keterangan;
+            document.getElementById('modalPdf').src = item.url_file;
+
+            const waText = `*DRAWING JUMBO BAG*\nTipe Bag: ${item.kode_model}\nKategori: TIPE ${item.tipe}\nKeterangan: ${item.keterangan}\n\n*Link File PDF:* ${item.url_file}`;
+            document.getElementById('waShareBtn').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+            
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        async function deleteDrawing() {
+            if(!currentActiveItem) return;
+            
+            const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus data dan file PDF untuk Tipe Bag ${currentActiveItem.kode_model}?`);
+            if(!konfirmasi) return;
+
+            document.getElementById('btnDelete').innerHTML = "Menghapus...";
+
+            if(currentActiveItem.file_path) {
+                await client.storage.from('drawings').remove([currentActiveItem.file_path]);
+            }
+
+            const { error } = await client.from('katalog_drawing').delete().eq('kode_model', currentActiveItem.kode_model);
+
+            if(error) {
+                alert("Gagal menghapus data!");
+            } else {
+                alert("Data berhasil dihapus secara permanen.");
+                closeModal('detailModal');
+                fetchData(); 
+            }
+            document.getElementById('btnDelete').innerHTML = "🗑️ <span>Hapus</span>";
+        }
+
+        function openAdminModal() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        async function handleUpload(event) {
+            event.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerText = "Mengupload... Mohon tunggu.";
+            btnSubmit.disabled = true;
+            
+            const kodeBaru = document.getElementById('inputKode').value.toUpperCase();
+            const tipeBaru = document.getElementById('inputTipe').value;
+            const ketBaru = document.getElementById('inputKeterangan').value;
+            const fileInput = document.getElementById('inputFile').files[0];
+
+            const indexAda = database.findIndex(b => b.kode_model === kodeBaru);
+            
+            try {
+                if (indexAda !== -1 && database[indexAda].file_path) {
+                    await client.storage.from('drawings').remove([database[indexAda].file_path]);
+                }
+
+                const fileName = `${kodeBaru}_${Date.now()}.pdf`;
+
+                const { error: uploadError } = await client.storage.from('drawings').upload(fileName, fileInput);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = client.storage.from('drawings').getPublicUrl(fileName);
+                const fileUrl = publicUrlData.publicUrl;
+
+                const dataPayload = {
+                    kode_model: kodeBaru,
+                    tipe: tipeBaru,
+                    keterangan: ketBaru,
+                    url_file: fileUrl,
+                    file_path: fileName
+                };
+
+                if (indexAda !== -1) {
+                    await client.from('katalog_drawing').update(dataPayload).eq('kode_model', kodeBaru);
+                    alert(`File PDF lama dihapus! Drawing Tipe Bag ${kodeBaru} diperbarui.`);
+                } else {
+                    await client.from('katalog_drawing').insert([dataPayload]);
+                    alert(`Drawing PDF baru Tipe Bag ${kodeBaru} berhasil ditambahkan!`);
+                }
+
+                closeModal('adminModal');
+                fetchData(); 
+
+            } catch (error) {
+                alert("Terjadi kesalahan saat mengupload. Pastikan Policies Supabase sudah diatur ke 'public'.");
+                console.error(error);
+            }
+
+            btnSubmit.innerText = "Upload ke Database";
+            btnSubmit.disabled = false;
+        }
+
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) event.target.style.display = 'none'; }
+
+        fetchData();
+    </script>
+</body>
+</html>
