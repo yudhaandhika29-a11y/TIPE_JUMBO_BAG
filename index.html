@@ -19,12 +19,15 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-white); color: var(--text-dark); line-height: 1.5; }
 
+        /* Header & Logo */
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 5%; background-color: var(--bg-white);
             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .logo-area h1 { color: var(--primary-teal); font-size: 1.4rem; font-weight: 800; letter-spacing: 1px;}
+        .logo-area { display: flex; align-items: center; }
+        .logo-img { max-height: 45px; width: auto; object-fit: contain; }
+        
         .btn-admin {
             background-color: var(--primary-teal); color: var(--bg-white);
             border: none; padding: 10px 20px; border-radius: 4px;
@@ -34,6 +37,7 @@
 
         .sub-header { background-color: var(--primary-teal); color: var(--bg-white); padding: 1rem 5%; text-align: center; font-size: 1.5rem; font-weight: bold; }
 
+        /* Hero & Pencarian Dropdown */
         .hero { position: relative; background-color: var(--gray-light); overflow: hidden; padding: 4rem 5%; display: flex; align-items: center; min-height: 300px; }
         .hero-diagonal {
             position: absolute; top: 0; right: 0; width: 45%; height: 100%;
@@ -43,11 +47,27 @@
         .hero-content { position: relative; z-index: 2; width: 100%; max-width: 600px; }
         .hero-content h2 { color: var(--primary-teal); font-size: 2rem; margin-bottom: 1rem; }
         
+        .search-container { position: relative; width: 100%; }
         .search-box {
             display: flex; width: 100%; background: var(--bg-white); border-radius: 50px; padding: 5px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid transparent; transition: border 0.3s;
         }
         .search-box:focus-within { border-color: var(--secondary-blue); }
         .search-box input { flex: 1; border: none; outline: none; padding: 15px 10px; font-size: 1.1rem; color: var(--text-dark); background: transparent; }
+
+        /* Dropdown Auto-suggest */
+        .search-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--bg-white); border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-top: 8px;
+            list-style: none; padding: 0; max-height: 250px; overflow-y: auto;
+            z-index: 50; display: none; border: 1px solid var(--border-color);
+        }
+        .search-dropdown li {
+            padding: 12px 25px; border-bottom: 1px solid var(--gray-light);
+            cursor: pointer; color: var(--text-dark); transition: all 0.2s; font-weight: 500;
+        }
+        .search-dropdown li:hover { background-color: var(--gray-light); color: var(--primary-teal); padding-left: 30px; }
+        .search-dropdown li.not-found { color: var(--danger-red); text-align: center; cursor: default; background: transparent; padding-left: 25px; }
 
         .type-nav { display: flex; justify-content: center; gap: 1rem; padding: 2.5rem 5%; background-color: var(--bg-white); flex-wrap: wrap; }
         .type-btn {
@@ -57,7 +77,7 @@
         .type-btn.active { background-color: var(--secondary-blue); border-color: var(--secondary-blue); color: var(--bg-white); }
 
         .container { padding: 0 5% 4rem; max-width: 1200px; margin: auto; min-height: 400px; }
-        .grid-katalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
+        .grid-katalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2rem; }
         .card {
             background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -68,10 +88,10 @@
         .card-title { color: var(--primary-teal); font-size: 1.2rem; font-weight: 700; }
 
         .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center;
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 15px;
         }
         .modal-content {
-            background-color: var(--bg-white); padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            background-color: var(--bg-white); padding: 2rem; border-radius: 12px; width: 100%; max-width: 700px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 95vh; overflow-y: auto;
         }
         
         .modal-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -98,13 +118,28 @@
         
         .loader { display: none; text-align: center; padding: 2rem; color: var(--primary-teal); font-weight: bold; }
 
-        @media (max-width: 768px) { .hero-diagonal { opacity: 0.3; width: 100%; clip-path: none; } }
+        /* Responsiveness untuk Layar HP / Mobile */
+        @media (max-width: 768px) { 
+            header { flex-direction: column; gap: 15px; text-align: center; }
+            .btn-admin { width: 100%; }
+            .logo-img { max-height: 55px; }
+            .hero { padding: 3rem 5%; min-height: 250px; text-align: center; }
+            .hero-diagonal { opacity: 0.15; width: 100%; clip-path: none; }
+            .type-btn { padding: 8px 15px; font-size: 0.9rem; flex: 1; min-width: 45%; text-align: center; }
+            .grid-katalog { gap: 1rem; }
+            .modal-pdf { height: 300px; }
+            .modal-content { padding: 1.5rem; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-area"><h1>VISI PRIMA ARTHA</h1></div>
+        <div class="logo-area">
+            <a href="https://ibb.co.com/dJmDMT7p">
+                <img src="https://i.ibb.co.com/KzKWhPms/Screenshot-2026-09-13-112129.png" alt="Screenshot-2026-09-13-112129" border="0" class="logo-img">
+            </a>
+        </div>
         <button class="btn-admin" onclick="openAdminModal()">Kelola Drawing</button>
     </header>
 
@@ -113,8 +148,12 @@
     <div class="hero">
         <div class="hero-content">
             <h2>Cari Spesifikasi & Drawing</h2>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Ketik Tipe Bag (Contoh: JB-101)..." onkeyup="liveSearch()">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Ketik Tipe Bag (Contoh: JB-101)..." onkeyup="liveSearch()" autocomplete="off">
+                </div>
+                <!-- Dropdown List Hasil Pencarian -->
+                <ul id="searchDropdown" class="search-dropdown"></ul>
             </div>
         </div>
         <div class="hero-diagonal"></div>
@@ -233,6 +272,7 @@
         function filterByTipe(tipe, btnElement) {
             currentActiveType = tipe;
             document.getElementById('searchInput').value = ''; 
+            document.getElementById('searchDropdown').style.display = 'none'; // Sembunyikan dropdown
             
             if(btnElement) {
                 document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
@@ -243,11 +283,15 @@
             renderKatalog(filteredData);
         }
 
+        // Logika Live Search beserta Dropdown Pop-Up
         function liveSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const dropdown = document.getElementById('searchDropdown');
+            
             document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
 
             if (keyword === "") {
+                dropdown.style.display = 'none';
                 const activeBtn = Array.from(document.querySelectorAll('.type-btn')).find(btn => btn.innerText.includes(currentActiveType));
                 if(activeBtn) activeBtn.classList.add('active');
                 filterByTipe(currentActiveType, activeBtn);
@@ -255,8 +299,36 @@
             }
 
             const searchData = database.filter(item => item.kode_model.toLowerCase().includes(keyword));
+            
+            // Merender grid di latar belakang
             renderKatalog(searchData);
+
+            // Menampilkan Pop-Up Dropdown
+            dropdown.innerHTML = '';
+            dropdown.style.display = 'block';
+
+            if (searchData.length === 0) {
+                dropdown.innerHTML = `<li class="not-found">TIDAK DITEMUKAN (NOT FOUND)</li>`;
+            } else {
+                searchData.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerText = item.kode_model;
+                    li.onclick = () => {
+                        document.getElementById('searchInput').value = item.kode_model;
+                        dropdown.style.display = 'none';
+                        openDetail(item.kode_model);
+                    };
+                    dropdown.appendChild(li);
+                });
+            }
         }
+
+        // Sembunyikan dropdown saat klik area luar
+        document.addEventListener('click', function(e) {
+            if (!document.querySelector('.search-container').contains(e.target)) {
+                document.getElementById('searchDropdown').style.display = 'none';
+            }
+        });
 
         function openDetail(kode) {
             const item = database.find(b => b.kode_model === kode);
@@ -347,7 +419,7 @@
                 fetchData(); 
 
             } catch (error) {
-                alert("Terjadi kesalahan saat mengupload. Pastikan Policies Supabase sudah diatur ke 'public'.");
+                alert("Terjadi kesalahan saat mengupload.");
                 console.error(error);
             }
 
