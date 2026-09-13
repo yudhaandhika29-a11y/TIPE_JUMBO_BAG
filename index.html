@@ -120,23 +120,19 @@
 
         /* PERBAIKAN RESPONSIVE MOBILE */
         @media (max-width: 768px) { 
-            /* Header dipertahankan row, ukuran diperkecil */
             header { padding: 15px 5%; flex-direction: row; }
             .logo-img { max-height: 28px; }
             .btn-admin { padding: 8px 12px; font-size: 0.85rem; width: auto; }
             
-            /* Penyesuaian text dan spasi */
             .sub-header { font-size: 1.2rem; padding: 12px 5%; }
             .hero { padding: 2.5rem 5%; min-height: 220px; text-align: center; }
             .hero-diagonal { opacity: 0.15; width: 100%; clip-path: none; }
             .hero-content h2 { font-size: 1.5rem; }
             .search-box input { padding: 12px 10px; font-size: 1rem; }
             
-            /* Menu Tipe Bag proporsional 2 kolom */
             .type-nav { gap: 10px; padding: 1.5rem 5%; }
             .type-btn { padding: 8px 10px; font-size: 0.9rem; flex: 1 1 40%; text-align: center; }
             
-            /* Grid dan Modal */
             .grid-katalog { gap: 1rem; }
             .modal-content { padding: 1.5rem; width: 95%; }
             .modal-pdf { height: 320px; margin: 0.5rem 0 1rem; }
@@ -163,7 +159,7 @@
             <h2>Cari Spesifikasi & Drawing</h2>
             <div class="search-container">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Ketik Tipe Bag ..." onkeyup="liveSearch()" autocomplete="off">
+                    <input type="text" id="searchInput" placeholder="Ketik Tipe Bag (Contoh: JB-101)..." onkeyup="liveSearch()" autocomplete="off">
                 </div>
                 <ul id="searchDropdown" class="search-dropdown"></ul>
             </div>
@@ -208,7 +204,7 @@
             
             <form id="uploadForm" onsubmit="handleUpload(event)">
                 <div class="form-group">
-                    <label>Tipe Bag </label>
+                    <label>Tipe Bag (Contoh: JB-101)</label>
                     <input type="text" id="inputKode" class="form-control" required>
                 </div>
                 <div class="form-group">
@@ -344,7 +340,10 @@
 
             document.getElementById('modalTitle').innerText = item.kode_model;
             document.getElementById('modalKeterangan').innerText = item.keterangan;
-            document.getElementById('modalPdf').src = item.url_file;
+            
+            // Konversi link agar bisa di-preview di HP
+            const pdfViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(item.url_file)}&embedded=true`;
+            document.getElementById('modalPdf').src = pdfViewerUrl;
 
             const waText = `*DRAWING JUMBO BAG*\nTipe Bag: ${item.kode_model}\nKategori: TIPE ${item.tipe}\nKeterangan: ${item.keterangan}\n\n*Link File PDF:* ${item.url_file}`;
             document.getElementById('waShareBtn').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
