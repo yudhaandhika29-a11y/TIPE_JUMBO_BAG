@@ -26,7 +26,7 @@
             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .logo-area { display: flex; align-items: center; }
-        .logo-img { max-height: 45px; width: auto; object-fit: contain; }
+        .logo-img { max-height: 45px; width: auto; max-width: 100%; object-fit: contain; }
         
         .btn-admin {
             background-color: var(--primary-teal); color: var(--bg-white);
@@ -118,17 +118,30 @@
         
         .loader { display: none; text-align: center; padding: 2rem; color: var(--primary-teal); font-weight: bold; }
 
-        /* Responsiveness untuk Layar HP / Mobile */
+        /* PERBAIKAN RESPONSIVE MOBILE */
         @media (max-width: 768px) { 
-            header { flex-direction: column; gap: 15px; text-align: center; }
-            .btn-admin { width: 100%; }
-            .logo-img { max-height: 55px; }
-            .hero { padding: 3rem 5%; min-height: 250px; text-align: center; }
+            /* Header dipertahankan row, ukuran diperkecil */
+            header { padding: 15px 5%; flex-direction: row; }
+            .logo-img { max-height: 28px; }
+            .btn-admin { padding: 8px 12px; font-size: 0.85rem; width: auto; }
+            
+            /* Penyesuaian text dan spasi */
+            .sub-header { font-size: 1.2rem; padding: 12px 5%; }
+            .hero { padding: 2.5rem 5%; min-height: 220px; text-align: center; }
             .hero-diagonal { opacity: 0.15; width: 100%; clip-path: none; }
-            .type-btn { padding: 8px 15px; font-size: 0.9rem; flex: 1; min-width: 45%; text-align: center; }
+            .hero-content h2 { font-size: 1.5rem; }
+            .search-box input { padding: 12px 10px; font-size: 1rem; }
+            
+            /* Menu Tipe Bag proporsional 2 kolom */
+            .type-nav { gap: 10px; padding: 1.5rem 5%; }
+            .type-btn { padding: 8px 10px; font-size: 0.9rem; flex: 1 1 40%; text-align: center; }
+            
+            /* Grid dan Modal */
             .grid-katalog { gap: 1rem; }
-            .modal-pdf { height: 300px; }
-            .modal-content { padding: 1.5rem; }
+            .modal-content { padding: 1.5rem; width: 95%; }
+            .modal-pdf { height: 320px; margin: 0.5rem 0 1rem; }
+            #modalTitle { font-size: 1.4rem; }
+            .modal-header-actions { margin-bottom: 0.5rem; }
         }
     </style>
 </head>
@@ -152,7 +165,6 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="Ketik Tipe Bag (Contoh: JB-101)..." onkeyup="liveSearch()" autocomplete="off">
                 </div>
-                <!-- Dropdown List Hasil Pencarian -->
                 <ul id="searchDropdown" class="search-dropdown"></ul>
             </div>
         </div>
@@ -272,7 +284,7 @@
         function filterByTipe(tipe, btnElement) {
             currentActiveType = tipe;
             document.getElementById('searchInput').value = ''; 
-            document.getElementById('searchDropdown').style.display = 'none'; // Sembunyikan dropdown
+            document.getElementById('searchDropdown').style.display = 'none'; 
             
             if(btnElement) {
                 document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
@@ -283,7 +295,6 @@
             renderKatalog(filteredData);
         }
 
-        // Logika Live Search beserta Dropdown Pop-Up
         function liveSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const dropdown = document.getElementById('searchDropdown');
@@ -300,10 +311,8 @@
 
             const searchData = database.filter(item => item.kode_model.toLowerCase().includes(keyword));
             
-            // Merender grid di latar belakang
             renderKatalog(searchData);
 
-            // Menampilkan Pop-Up Dropdown
             dropdown.innerHTML = '';
             dropdown.style.display = 'block';
 
@@ -323,7 +332,6 @@
             }
         }
 
-        // Sembunyikan dropdown saat klik area luar
         document.addEventListener('click', function(e) {
             if (!document.querySelector('.search-container').contains(e.target)) {
                 document.getElementById('searchDropdown').style.display = 'none';
