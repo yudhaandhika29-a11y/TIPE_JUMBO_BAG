@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drawing Library - PT Visi Prima Artha</title>
     
-    <!-- Supabase & PDF.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
@@ -18,6 +17,7 @@
             --gray-light: #F4F7F6;
             --border-color: #EAEAEA;
             --danger-red: #E74C3C;
+            --edit-yellow: #F39C12;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -95,22 +95,30 @@
             background-color: var(--bg-white); padding: 2rem; border-radius: 12px; width: 100%; max-width: 700px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 95vh; overflow-y: auto;
         }
         
-        .modal-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .btn-delete {
-            background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--danger-red); transition: transform 0.2s; display: flex; align-items: center; gap: 5px;
-        }
-        .btn-delete:hover { transform: scale(1.1); }
-        .btn-delete span { font-size: 0.9rem; font-weight: 600; }
-        .close-btn { font-size: 2rem; cursor: pointer; color: #aaa; line-height: 1; }
+        /* Tombol Aksi Icon Only (Edit & Delete) */
+        .modal-header-actions { display: flex; align-items: center; gap: 15px; margin-bottom: 1rem; }
+        .icon-btn { background: none; border: none; font-size: 1.6rem; cursor: pointer; transition: transform 0.2s; }
+        .icon-btn:hover { transform: scale(1.15); }
+        .close-btn { font-size: 2.2rem; cursor: pointer; color: #aaa; line-height: 1; margin-left: auto; }
         .close-btn:hover { color: var(--primary-teal); }
-        
+
         /* Area Canvas Penampil Gambar PDF */
+        .canvas-wrapper { position: relative; width: 100%; margin: 1rem 0; }
+        
+        .btn-view-full {
+            position: absolute; top: 12px; right: 12px; z-index: 10;
+            background-color: rgba(15, 122, 138, 0.9); color: var(--bg-white);
+            padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold;
+            text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: background 0.3s;
+        }
+        .btn-view-full:hover { background-color: #0b5c68; }
+
         .canvas-container {
             width: 100%; background-color: #f9f9f9; border: 1px solid var(--border-color);
-            border-radius: 6px; margin: 1rem 0; display: flex; justify-content: center; 
-            align-items: center; min-height: 300px; overflow: hidden;
+            border-radius: 6px; display: flex; flex-direction: column; justify-content: flex-start; 
+            align-items: center; min-height: 250px; overflow-y: auto; padding: 1rem;
         }
-        #pdfCanvas { max-width: 100%; height: auto !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .pdf-page-canvas { max-width: 100%; height: auto !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; border: 1px solid #ddd; }
         
         .btn-action {
             display: block; width: 100%; padding: 15px; background-color: var(--primary-teal); color: var(--bg-white); font-size: 1.1rem; font-weight: bold; text-align: center; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.3s;
@@ -121,6 +129,8 @@
         .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary-teal); }
         .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; background-color: var(--gray-light); }
         .form-control:focus { outline: none; border-color: var(--secondary-blue); background-color: var(--bg-white); }
+        .form-control:read-only { background-color: #e9ecef; cursor: not-allowed; }
+        
         .no-data { grid-column: 1/-1; text-align: center; color: #777; font-size: 1.1rem; padding: 2rem; }
         .loader { display: none; text-align: center; padding: 2rem; color: var(--primary-teal); font-weight: bold; }
 
@@ -140,9 +150,8 @@
             
             .grid-katalog { gap: 1rem; }
             .modal-content { padding: 1.5rem; width: 95%; }
-            .canvas-container { min-height: 250px; }
+            .canvas-container { padding: 0.5rem; }
             #modalTitle { font-size: 1.4rem; }
-            .modal-header-actions { margin-bottom: 0.5rem; }
         }
     </style>
 </head>
@@ -187,29 +196,35 @@
     <!-- Modal Detail PDF -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
+            
+            <!-- Deretan Icon Edit dan Hapus -->
             <div class="modal-header-actions">
-                <button class="btn-delete" id="btnDelete" onclick="deleteDrawing()">🗑️ <span>Hapus</span></button>
+                <button class="icon-btn" title="Edit Keterangan" onclick="openEditModal()">✏️</button>
+                <button class="icon-btn" title="Hapus Permanen" id="btnDelete" onclick="deleteDrawing()">🗑️</button>
                 <span class="close-btn" onclick="closeModal('detailModal')">&times;</span>
             </div>
             
             <h2 id="modalTitle" style="color: var(--primary-teal); font-size: 1.8rem;">TIPE BAG</h2>
             <p id="modalKeterangan" style="color: #555; margin-top: 5px; margin-bottom: 10px; line-height: 1.6;"></p>
             
-            <!-- Tempat PDF ditampilkan sebagai Gambar -->
-            <div class="canvas-container">
-                <div id="pdfLoaderText" style="color: var(--primary-teal); font-weight: bold;">Memproses Gambar...</div>
-                <canvas id="pdfCanvas" style="display: none;"></canvas>
+            <div class="canvas-wrapper">
+                <!-- Tombol Lihat PDF Utuh di Pojok Kanan Gambar -->
+                <a href="#" id="btnViewFull" target="_blank" class="btn-view-full">↗️ Buka PDF</a>
+                
+                <div class="canvas-container" id="pdfContainer">
+                    <div id="pdfLoaderText" style="color: var(--primary-teal); font-weight: bold; width: 100%; text-align: center;">Memproses Gambar...</div>
+                </div>
             </div>
             
             <a href="#" id="waShareBtn" target="_blank" class="btn-action">Bagikan Link ke WhatsApp</a>
         </div>
     </div>
 
-    <!-- Modal Form Upload/Update -->
+    <!-- Modal Form Upload/Edit -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('adminModal')" style="position: absolute; right: 20px; top: 15px;">&times;</span>
-            <h2 style="color: var(--primary-teal); margin-bottom: 1.5rem; text-align: center;">Upload / Update File PDF</h2>
+            <h2 id="adminModalTitle" style="color: var(--primary-teal); margin-bottom: 1.5rem; text-align: center;">Upload File PDF Baru</h2>
             
             <form id="uploadForm" onsubmit="handleUpload(event)">
                 <div class="form-group">
@@ -230,16 +245,15 @@
                     <textarea id="inputKeterangan" class="form-control" rows="3" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label>File Drawing (Wajib format .PDF)</label>
+                    <label id="labelFile">File Drawing (Wajib format .PDF)</label>
                     <input type="file" id="inputFile" class="form-control" accept="application/pdf" required>
                 </div>
-                <button type="submit" id="btnSubmit" class="btn-action" style="margin-top: 1rem;">Upload ke Database</button>
+                <button type="submit" id="btnSubmit" class="btn-action" style="margin-top: 1rem;">Simpan ke Database</button>
             </form>
         </div>
     </div>
 
     <script>
-        // Konfigurasi PDF.js Worker
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -250,6 +264,7 @@
         let database = [];
         let currentActiveType = 'A';
         let currentActiveItem = null;
+        let isEditMode = false; // Mode sistem (True = Sedang Edit Keterangan)
 
         async function fetchData() {
             document.getElementById('loader').style.display = 'block';
@@ -345,7 +360,6 @@
             }
         });
 
-        // Modifikasi Render PDF.js
         function openDetail(kode) {
             const item = database.find(b => b.kode_model === kode);
             currentActiveItem = item; 
@@ -353,29 +367,36 @@
             document.getElementById('modalTitle').innerText = item.kode_model;
             document.getElementById('modalKeterangan').innerText = item.keterangan;
             
-            // Siapkan area Canvas
+            // Set Link Buka Full PDF
+            document.getElementById('btnViewFull').href = item.url_file;
+
             const loader = document.getElementById('pdfLoaderText');
-            const canvas = document.getElementById('pdfCanvas');
+            const container = document.getElementById('pdfContainer');
+            
             loader.style.display = 'block';
             loader.innerText = 'Memproses Gambar...';
-            canvas.style.display = 'none';
+            container.innerHTML = ''; 
+            container.appendChild(loader);
 
-            // Proses Render PDF ke Gambar HTML
-            pdfjsLib.getDocument(item.url_file).promise.then(pdf => {
-                return pdf.getPage(1); // Ambil halaman 1 saja
-            }).then(page => {
-                const ctx = canvas.getContext('2d');
-                const viewport = page.getViewport({ scale: 2.0 }); // Resolusi tinggi agar tidak pecah
+            pdfjsLib.getDocument(item.url_file).promise.then(async (pdf) => {
+                loader.style.display = 'none';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page-canvas';
+                    container.appendChild(canvas);
+                    
+                    const ctx = canvas.getContext('2d');
+                    const viewport = page.getViewport({ scale: 2.0 });
 
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
 
-                page.render({ canvasContext: ctx, viewport: viewport }).promise.then(() => {
-                    loader.style.display = 'none';
-                    canvas.style.display = 'block';
-                });
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                }
             }).catch(err => {
                 console.error(err);
+                loader.style.display = 'block';
                 loader.innerText = 'Gagal menampilkan gambar. Pastikan file valid.';
             });
 
@@ -390,7 +411,7 @@
             const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus data dan file PDF untuk Tipe Bag ${currentActiveItem.kode_model}?`);
             if(!konfirmasi) return;
 
-            document.getElementById('btnDelete').innerHTML = "Menghapus...";
+            document.getElementById('btnDelete').innerText = "⏳";
 
             if(currentActiveItem.file_path) {
                 await client.storage.from('drawings').remove([currentActiveItem.file_path]);
@@ -404,58 +425,100 @@
                 closeModal('detailModal');
                 fetchData(); 
             }
-            document.getElementById('btnDelete').innerHTML = "🗑️ <span>Hapus</span>";
+            document.getElementById('btnDelete').innerText = "🗑️";
         }
 
         function openAdminModal() {
+            isEditMode = false; // Mode Upload Baru
             document.getElementById('uploadForm').reset();
+            document.getElementById('adminModalTitle').innerText = "Upload File PDF Baru";
+            
+            // Kolom kode bisa diisi dan file diwajibkan
+            document.getElementById('inputKode').readOnly = false;
+            document.getElementById('inputFile').required = true;
+            document.getElementById('labelFile').innerText = "File Drawing (Wajib format .PDF)";
+            
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        function openEditModal() {
+            if(!currentActiveItem) return;
+            isEditMode = true; // Mode Edit Keterangan
+            document.getElementById('uploadForm').reset();
+            
+            document.getElementById('adminModalTitle').innerText = "Edit Keterangan Data";
+            
+            // Isi otomatis data lama ke form
+            document.getElementById('inputKode').value = currentActiveItem.kode_model;
+            document.getElementById('inputTipe').value = currentActiveItem.tipe;
+            document.getElementById('inputKeterangan').value = currentActiveItem.keterangan;
+            
+            // Kunci Tipe Bag agar tidak berubah & File PDF tidak wajib diisi
+            document.getElementById('inputKode').readOnly = true;
+            document.getElementById('inputFile').required = false;
+            document.getElementById('labelFile').innerText = "File Drawing Baru (Opsional, kosongkan jika tidak ganti PDF)";
+            
+            closeModal('detailModal');
             document.getElementById('adminModal').style.display = 'flex';
         }
 
         async function handleUpload(event) {
             event.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.innerText = "Mengupload... Mohon tunggu.";
+            btnSubmit.innerText = "Memproses... Mohon tunggu.";
             btnSubmit.disabled = true;
             
             const kodeBaru = document.getElementById('inputKode').value.toUpperCase();
             const tipeBaru = document.getElementById('inputTipe').value;
             const ketBaru = document.getElementById('inputKeterangan').value;
             const fileInput = document.getElementById('inputFile').files[0];
-            const indexAda = database.findIndex(b => b.kode_model === kodeBaru);
             
             try {
-                if (indexAda !== -1 && database[indexAda].file_path) {
-                    await client.storage.from('drawings').remove([database[indexAda].file_path]);
-                }
-                const fileName = `${kodeBaru}_${Date.now()}.pdf`;
-                const { error: uploadError } = await client.storage.from('drawings').upload(fileName, fileInput);
-                if (uploadError) throw uploadError;
+                // LOGIKA 1: Jika hanya edit keterangan (tanpa ganti file PDF)
+                if (isEditMode && !fileInput) {
+                    const dataPayload = { tipe: tipeBaru, keterangan: ketBaru };
+                    const { error } = await client.from('katalog_drawing').update(dataPayload).eq('kode_model', kodeBaru);
+                    
+                    if(error) throw error;
+                    alert(`Keterangan Tipe Bag ${kodeBaru} berhasil diperbarui!`);
+                } 
+                // LOGIKA 2: Jika upload baru ATAU edit sekalian ganti file PDF
+                else {
+                    const indexAda = database.findIndex(b => b.kode_model === kodeBaru);
+                    
+                    if (indexAda !== -1 && database[indexAda].file_path) {
+                        await client.storage.from('drawings').remove([database[indexAda].file_path]);
+                    }
+                    
+                    const fileName = `${kodeBaru}_${Date.now()}.pdf`;
+                    const { error: uploadError } = await client.storage.from('drawings').upload(fileName, fileInput);
+                    if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = client.storage.from('drawings').getPublicUrl(fileName);
-                const fileUrl = publicUrlData.publicUrl;
+                    const { data: publicUrlData } = client.storage.from('drawings').getPublicUrl(fileName);
+                    const fileUrl = publicUrlData.publicUrl;
 
-                const dataPayload = {
-                    kode_model: kodeBaru, tipe: tipeBaru,
-                    keterangan: ketBaru, url_file: fileUrl, file_path: fileName
-                };
+                    const dataPayload = {
+                        kode_model: kodeBaru, tipe: tipeBaru,
+                        keterangan: ketBaru, url_file: fileUrl, file_path: fileName
+                    };
 
-                if (indexAda !== -1) {
-                    await client.from('katalog_drawing').update(dataPayload).eq('kode_model', kodeBaru);
-                    alert(`File PDF lama dihapus! Drawing Tipe Bag ${kodeBaru} diperbarui.`);
-                } else {
-                    await client.from('katalog_drawing').insert([dataPayload]);
-                    alert(`Drawing PDF baru Tipe Bag ${kodeBaru} berhasil ditambahkan!`);
+                    if (indexAda !== -1) {
+                        await client.from('katalog_drawing').update(dataPayload).eq('kode_model', kodeBaru);
+                        alert(`File PDF dan Data Tipe Bag ${kodeBaru} berhasil diperbarui!`);
+                    } else {
+                        await client.from('katalog_drawing').insert([dataPayload]);
+                        alert(`Drawing PDF baru Tipe Bag ${kodeBaru} berhasil ditambahkan!`);
+                    }
                 }
 
                 closeModal('adminModal');
                 fetchData(); 
             } catch (error) {
-                alert("Terjadi kesalahan saat mengupload.");
+                alert("Terjadi kesalahan saat memproses data.");
                 console.error(error);
             }
 
-            btnSubmit.innerText = "Upload ke Database";
+            btnSubmit.innerText = "Simpan ke Database";
             btnSubmit.disabled = false;
         }
 
