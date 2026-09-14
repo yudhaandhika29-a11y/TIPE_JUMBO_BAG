@@ -17,7 +17,6 @@
             --gray-light: #F4F7F6;
             --border-color: #EAEAEA;
             --danger-red: #E74C3C;
-            --edit-yellow: #F39C12;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -97,7 +96,7 @@
         
         /* Tombol Aksi Icon Only (Edit & Delete) */
         .modal-header-actions { display: flex; align-items: center; gap: 15px; margin-bottom: 1rem; }
-        .icon-btn { background: none; border: none; font-size: 1.6rem; cursor: pointer; transition: transform 0.2s; }
+        .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; color: #555; }
         .icon-btn:hover { transform: scale(1.15); }
         .close-btn { font-size: 2.2rem; cursor: pointer; color: #aaa; line-height: 1; margin-left: auto; }
         .close-btn:hover { color: var(--primary-teal); }
@@ -105,13 +104,15 @@
         /* Area Canvas Penampil Gambar PDF */
         .canvas-wrapper { position: relative; width: 100%; margin: 1rem 0; }
         
+        /* Tombol Buka PDF (Icon Only, Bundar) */
         .btn-view-full {
             position: absolute; top: 12px; right: 12px; z-index: 10;
-            background-color: rgba(15, 122, 138, 0.9); color: var(--bg-white);
-            padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold;
-            text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: background 0.3s;
+            background-color: rgba(15, 122, 138, 0.85); color: var(--bg-white);
+            width: 40px; height: 40px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+            text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: all 0.3s;
         }
-        .btn-view-full:hover { background-color: #0b5c68; }
+        .btn-view-full:hover { background-color: #0b5c68; transform: scale(1.1); }
 
         .canvas-container {
             width: 100%; background-color: #f9f9f9; border: 1px solid var(--border-color);
@@ -152,6 +153,7 @@
             .modal-content { padding: 1.5rem; width: 95%; }
             .canvas-container { padding: 0.5rem; }
             #modalTitle { font-size: 1.4rem; }
+            .btn-view-full { top: 8px; right: 8px; width: 35px; height: 35px; font-size: 1rem; }
         }
     </style>
 </head>
@@ -197,7 +199,6 @@
     <div id="detailModal" class="modal">
         <div class="modal-content">
             
-            <!-- Deretan Icon Edit dan Hapus -->
             <div class="modal-header-actions">
                 <button class="icon-btn" title="Edit Keterangan" onclick="openEditModal()">✏️</button>
                 <button class="icon-btn" title="Hapus Permanen" id="btnDelete" onclick="deleteDrawing()">🗑️</button>
@@ -208,8 +209,8 @@
             <p id="modalKeterangan" style="color: #555; margin-top: 5px; margin-bottom: 10px; line-height: 1.6;"></p>
             
             <div class="canvas-wrapper">
-                <!-- Tombol Lihat PDF Utuh di Pojok Kanan Gambar -->
-                <a href="#" id="btnViewFull" target="_blank" class="btn-view-full">↗️ Buka PDF</a>
+                <!-- Tombol Lihat PDF Utuh (Hanya Ikon, Bundar) -->
+                <a href="#" id="btnViewFull" target="_blank" class="btn-view-full" title="Buka PDF Penuh">↗️</a>
                 
                 <div class="canvas-container" id="pdfContainer">
                     <div id="pdfLoaderText" style="color: var(--primary-teal); font-weight: bold; width: 100%; text-align: center;">Memproses Gambar...</div>
@@ -264,7 +265,7 @@
         let database = [];
         let currentActiveType = 'A';
         let currentActiveItem = null;
-        let isEditMode = false; // Mode sistem (True = Sedang Edit Keterangan)
+        let isEditMode = false;
 
         async function fetchData() {
             document.getElementById('loader').style.display = 'block';
@@ -367,7 +368,6 @@
             document.getElementById('modalTitle').innerText = item.kode_model;
             document.getElementById('modalKeterangan').innerText = item.keterangan;
             
-            // Set Link Buka Full PDF
             document.getElementById('btnViewFull').href = item.url_file;
 
             const loader = document.getElementById('pdfLoaderText');
@@ -429,11 +429,10 @@
         }
 
         function openAdminModal() {
-            isEditMode = false; // Mode Upload Baru
+            isEditMode = false;
             document.getElementById('uploadForm').reset();
             document.getElementById('adminModalTitle').innerText = "Upload File PDF Baru";
             
-            // Kolom kode bisa diisi dan file diwajibkan
             document.getElementById('inputKode').readOnly = false;
             document.getElementById('inputFile').required = true;
             document.getElementById('labelFile').innerText = "File Drawing (Wajib format .PDF)";
@@ -443,17 +442,15 @@
 
         function openEditModal() {
             if(!currentActiveItem) return;
-            isEditMode = true; // Mode Edit Keterangan
+            isEditMode = true;
             document.getElementById('uploadForm').reset();
             
             document.getElementById('adminModalTitle').innerText = "Edit Keterangan Data";
             
-            // Isi otomatis data lama ke form
             document.getElementById('inputKode').value = currentActiveItem.kode_model;
             document.getElementById('inputTipe').value = currentActiveItem.tipe;
             document.getElementById('inputKeterangan').value = currentActiveItem.keterangan;
             
-            // Kunci Tipe Bag agar tidak berubah & File PDF tidak wajib diisi
             document.getElementById('inputKode').readOnly = true;
             document.getElementById('inputFile').required = false;
             document.getElementById('labelFile').innerText = "File Drawing Baru (Opsional, kosongkan jika tidak ganti PDF)";
@@ -474,7 +471,6 @@
             const fileInput = document.getElementById('inputFile').files[0];
             
             try {
-                // LOGIKA 1: Jika hanya edit keterangan (tanpa ganti file PDF)
                 if (isEditMode && !fileInput) {
                     const dataPayload = { tipe: tipeBaru, keterangan: ketBaru };
                     const { error } = await client.from('katalog_drawing').update(dataPayload).eq('kode_model', kodeBaru);
@@ -482,7 +478,6 @@
                     if(error) throw error;
                     alert(`Keterangan Tipe Bag ${kodeBaru} berhasil diperbarui!`);
                 } 
-                // LOGIKA 2: Jika upload baru ATAU edit sekalian ganti file PDF
                 else {
                     const indexAda = database.findIndex(b => b.kode_model === kodeBaru);
                     
