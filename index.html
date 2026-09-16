@@ -32,7 +32,8 @@
             background: var(--bg-white); padding: 3rem 2rem; border-radius: 12px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center;
         }
-        .login-card img { max-height: 50px; margin-bottom: 1.5rem; }
+        /* Fix Logo Zooming */
+        .login-card img { max-height: 55px; max-width: 100%; height: auto; object-fit: contain; margin-bottom: 1.5rem; }
         .login-card h2 { color: var(--primary-teal); margin-bottom: 2rem; font-size: 1.3rem; }
         
         .btn-login {
@@ -53,7 +54,9 @@
         .password-area input:focus { outline: none; border-color: var(--primary-teal); }
         .btn-back { background: none; border: none; color: #777; cursor: pointer; text-decoration: underline; margin-top: 10px; width: 100%; }
         
+        /* CSS KHUSUS MODE VIEWER */
         body.viewer-mode .admin-only { display: none !important; }
+        body.viewer-mode .viewer-hide { display: none !important; }
 
         /* --- DESAIN WEB UTAMA --- */
         header {
@@ -64,12 +67,22 @@
         .logo-area { display: flex; align-items: center; }
         .logo-img { max-height: 45px; width: auto; max-width: 100%; object-fit: contain; }
         
+        /* Aksi Header Kanan (Kelola & Keluar) */
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+        
         .btn-admin {
             background-color: var(--primary-teal); color: var(--bg-white);
             border: none; padding: 10px 20px; border-radius: 4px;
             cursor: pointer; font-weight: 600; transition: background 0.3s ease;
         }
         .btn-admin:hover { background-color: #0b5c68; }
+
+        .btn-logout {
+            background-color: var(--gray-light); color: var(--danger-red); border: 1px solid var(--border-color);
+            padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-logout:hover { background-color: var(--danger-red); color: var(--bg-white); border-color: var(--danger-red); transform: scale(1.05); }
 
         .sub-header { background-color: var(--primary-teal); color: var(--bg-white); padding: 1rem 5%; text-align: center; font-size: 1.5rem; font-weight: bold; }
 
@@ -111,7 +124,6 @@
         .type-btn:hover { border-color: var(--secondary-blue); color: var(--secondary-blue); }
         .type-btn.active { background-color: var(--secondary-blue); border-color: var(--secondary-blue); color: var(--bg-white); }
 
-        /* --- DESAIN LIST BARU (BOX SIMPEL BERBARIS) --- */
         .container { padding: 0 5% 4rem; max-width: 800px; margin: auto; min-height: 400px; }
         .grid-katalog { display: flex; flex-direction: column; gap: 1rem; }
         .card {
@@ -195,6 +207,7 @@
             #modalTitle { font-size: 1.4rem; }
             .btn-view-full { top: 8px; right: 8px; width: 35px; height: 35px; }
             .card { padding: 1rem 1.5rem; }
+            .header-actions { gap: 10px; }
         }
     </style>
 </head>
@@ -226,7 +239,14 @@
                 <img src="https://i.ibb.co.com/KzKWhPms/Screenshot-2026-09-13-112129.png" alt="Screenshot-2026-09-13-112129" border="0" class="logo-img">
             </a>
         </div>
-        <button class="btn-admin admin-only" onclick="openAdminModal()">Kelola Drawing</button>
+        <div class="header-actions">
+            <!-- Disembunyikan di mode viewer -->
+            <button class="btn-admin admin-only" onclick="openAdminModal()">Kelola Drawing</button>
+            <!-- Tombol Keluar Selalu Muncul di Mode Manapun -->
+            <button class="btn-logout" onclick="logout()" title="Keluar Akun">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
     </header>
 
     <div class="sub-header">Database Drawing Jumbo Bag</div>
@@ -245,7 +265,7 @@
     </div>
 
     <div class="type-nav">
-        <!-- Default Kosong (TIDAK ADA YANG ACTIVE) -->
+        <!-- Default Kosong -->
         <button class="type-btn" onclick="filterByTipe('A', this)">TIPE A</button>
         <button class="type-btn" onclick="filterByTipe('B', this)">TIPE B</button>
         <button class="type-btn" onclick="filterByTipe('C', this)">TIPE C</button>
@@ -277,7 +297,8 @@
             <p id="modalKeterangan" style="color: #555; margin-top: 5px; margin-bottom: 10px; line-height: 1.6;"></p>
             
             <div class="canvas-wrapper">
-                <a href="#" id="btnViewFull" target="_blank" class="btn-view-full" title="Buka PDF Penuh">
+                <!-- Tambah class viewer-hide agar hilang di mode viewer -->
+                <a href="#" id="btnViewFull" target="_blank" class="btn-view-full viewer-hide" title="Buka PDF Penuh">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>
                 
@@ -286,7 +307,8 @@
                 </div>
             </div>
             
-            <a href="#" id="waShareBtn" target="_blank" class="btn-action">Bagikan Link ke WhatsApp</a>
+            <!-- Tambah class viewer-hide agar hilang di mode viewer -->
+            <a href="#" id="waShareBtn" target="_blank" class="btn-action viewer-hide">Bagikan Link ke WhatsApp</a>
         </div>
     </div>
 
@@ -324,7 +346,28 @@
     </div>
 
     <script>
-        // --- LOGIKA LOGIN SCREEN ---
+        // --- LOGIKA PERSISTENT LOGIN & LOGOUT ---
+        function checkLoginStatus() {
+            const role = localStorage.getItem('appRole'); // Cek memori browser
+            
+            if (role === 'viewer') {
+                document.body.classList.add('viewer-mode'); 
+                document.body.style.overflow = 'auto'; 
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else if (role === 'admin') {
+                document.body.classList.remove('viewer-mode');
+                document.body.style.overflow = 'auto';
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                // Jika belum ada akses
+                document.getElementById('loginOverlay').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Jalankan pengecekan saat web dibuka pertama kali
+        checkLoginStatus();
+
         function showAdminForm() {
             document.getElementById('btnGroupAccess').style.display = 'none';
             document.getElementById('adminPasswordArea').style.display = 'block';
@@ -343,21 +386,33 @@
 
         function loginAs(role) {
             if (role === 'viewer') {
-                document.body.classList.add('viewer-mode'); 
-                document.body.style.overflow = 'auto'; 
-                document.getElementById('loginOverlay').style.display = 'none';
+                localStorage.setItem('appRole', 'viewer'); // Simpan sesi
+                checkLoginStatus();
             } else if (role === 'admin') {
                 const pass = document.getElementById('adminPassword').value;
                 if (pass === 'VISIJAYA') {
-                    document.body.classList.remove('viewer-mode');
-                    document.body.style.overflow = 'auto';
-                    document.getElementById('loginOverlay').style.display = 'none';
+                    localStorage.setItem('appRole', 'admin'); // Simpan sesi
+                    document.getElementById('adminPassword').value = '';
+                    checkLoginStatus();
                 } else {
                     alert('Password yang Anda masukkan salah!');
                     document.getElementById('adminPassword').value = '';
                     document.getElementById('adminPassword').focus();
                 }
             }
+        }
+
+        // Fungsi Keluar / Logout
+        function logout() {
+            const konfirmasi = confirm("Apakah Anda yakin ingin keluar dan berganti akses?");
+            if (!konfirmasi) return;
+            
+            // Hapus sesi dan reset tampilan
+            localStorage.removeItem('appRole');
+            hideAdminForm();
+            closeModal('detailModal');
+            closeModal('adminModal');
+            checkLoginStatus();
         }
         // ---------------------------
 
@@ -413,7 +468,6 @@
             });
         }
 
-        // --- SISTEM TOGGLE TIPE ---
         function filterByTipe(tipe, btnElement) {
             document.getElementById('searchInput').value = ''; 
             document.getElementById('searchDropdown').style.display = 'none'; 
@@ -435,7 +489,6 @@
             renderKatalog(filteredData);
         }
 
-        // --- SISTEM PENCARIAN (Menampilkan Semua & Dropdown 1 Teratas) ---
         function liveSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const dropdown = document.getElementById('searchDropdown');
@@ -451,7 +504,6 @@
 
             let searchData = database.filter(item => item.kode_model.toLowerCase().includes(keyword));
             
-            // Urutkan data berdasarkan relevansi dan abjad
             searchData = searchData.sort((a, b) => {
                 const aStarts = a.kode_model.toLowerCase().startsWith(keyword);
                 const bStarts = b.kode_model.toLowerCase().startsWith(keyword);
@@ -460,7 +512,6 @@
                 return a.kode_model.localeCompare(b.kode_model);
             });
             
-            // Tampilkan SEMUA hasil di daftar (grid utama bawah)
             renderKatalog(searchData);
 
             dropdown.innerHTML = '';
@@ -469,7 +520,6 @@
             if (searchData.length === 0) {
                 dropdown.innerHTML = `<li class="not-found">TIDAK DITEMUKAN</li>`;
             } else {
-                // Tampilkan HANYA 1 yang teratas di dropdown
                 const topItem = searchData[0];
                 const li = document.createElement('li');
                 li.innerText = topItem.kode_model;
