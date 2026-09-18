@@ -174,18 +174,22 @@
         .icon-btn.zoom { background-color: var(--gray-light); border: 1px solid var(--border-color); padding: 8px 12px; color: var(--primary-teal); }
         .icon-btn.zoom:hover { background-color: #e0f2f1; border-color: var(--primary-teal); transform: scale(1.05); }
 
+        /* PERBAIKAN ZOOM CONTROLS MENGGANTUNG */
         .zoom-controls-wrapper {
             position: sticky;
-            top: -15px;
+            top: 10px;
             z-index: 100;
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(5px);
-            padding: 10px 0;
-            margin-bottom: 10px;
             display: flex;
             justify-content: flex-start;
             gap: 10px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 10px;
+            pointer-events: none;
+        }
+
+        .zoom-controls-wrapper .icon-btn.zoom {
+            pointer-events: auto;
+            background-color: var(--bg-white);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .close-btn { font-size: 2.2rem; cursor: pointer; color: #aaa; line-height: 1; margin-left: auto; transition: color 0.2s; }
@@ -245,10 +249,8 @@
             .type-nav { gap: 10px; padding: 1.5rem 5%; }
             .type-btn { padding: 8px 10px; font-size: 0.9rem; flex: 1 1 40%; text-align: center; }
             
-            /* Hapus jarak luar agar Modal menyentuh layar penuh */
             .modal { padding: 0; } 
             
-            /* Hapus jarak kanan kiri, jadikan layar penuh */
             .modal-content { 
                 padding: 1.5rem 0 2rem 0; 
                 width: 100%; 
@@ -256,7 +258,6 @@
                 border-radius: 0;
             }
             
-            /* Kembalikan padding khusus untuk Teks dan Tombol agar tidak mentok tepi layar */
             .modal-header-actions, #modalTitle, #modalKeterangan, .zoom-controls-wrapper { 
                 padding-left: 15px; 
                 padding-right: 15px; 
@@ -266,7 +267,6 @@
                 margin: 15px auto 0;
             }
             
-            /* Bersihkan jarak dan garis pada kontainer gambar */
             .canvas-container { 
                 padding: 0; 
                 border: none; 
@@ -274,7 +274,6 @@
             }
             .canvas-wrapper { margin: 5px 0; }
             
-            /* Hapus garis tepi gambar PDF di HP */
             .pdf-page-canvas { 
                 border: none; 
                 margin-bottom: 8px;
