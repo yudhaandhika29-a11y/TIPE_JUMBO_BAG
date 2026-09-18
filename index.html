@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Drawing Library - PT Visi Prima Artha</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,7 +20,19 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-white); color: var(--text-dark); line-height: 1.5; overflow: hidden; }
+        body { background-color: var(--bg-white); color: var(--text-dark); line-height: 1.5; overflow-y: auto; }
+
+        /* --- PROTEKSI MODE VIEWER KHUSUS CSS --- */
+        body.viewer-mode {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        body.viewer-mode img, body.viewer-mode canvas {
+            -webkit-user-drag: none;
+        }
 
         /* --- HALAMAN LOGIN (OVERLAY) --- */
         .login-overlay {
@@ -67,7 +79,6 @@
         
         .header-actions { display: flex; align-items: center; gap: 10px; }
         
-        /* Tombol Header Menjadi Icon Saja */
         .header-icon-btn {
             background-color: var(--gray-light); border: 1px solid var(--border-color);
             padding: 7px; border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
@@ -142,14 +153,44 @@
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 15px;
         }
+        
+        /* LEBAR MODAL DIMAKSIMALKAN */
         .modal-content {
-            background-color: var(--bg-white); padding: 2rem; border-radius: 12px; width: 100%; max-width: 700px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 95vh; overflow-y: auto;
+            background-color: var(--bg-white); 
+            padding: 2rem; 
+            border-radius: 12px; 
+            width: 96%; /* Diperbesar hingga 96% dari layar */
+            max-width: 1600px; /* Batas maksimal diperlebar */
+            position: relative; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            max-height: 95vh; 
+            overflow-y: auto;
         }
         
         .modal-header-actions { display: flex; align-items: center; gap: 15px; margin-bottom: 1rem; }
         .icon-btn { background: none; border: none; cursor: pointer; color: #7f8c8d; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 6px; }
         .icon-btn.edit:hover { color: var(--primary-teal); background-color: #e0f2f1; transform: scale(1.1); }
         .icon-btn.delete:hover { color: var(--danger-red); background-color: #fadbd8; transform: scale(1.1); }
+        
+        /* TOMBOL ZOOM BARU */
+        .icon-btn.zoom { background-color: var(--gray-light); border: 1px solid var(--border-color); padding: 8px 12px; color: var(--primary-teal); }
+        .icon-btn.zoom:hover { background-color: #e0f2f1; border-color: var(--primary-teal); transform: scale(1.05); }
+
+        /* MEMBUAT CONTAINER ZOOM MENGGANTUNG (STICKY) */
+        .zoom-controls-wrapper {
+            position: sticky;
+            top: -15px; /* Offset dari padding atas modal */
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 10px 0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .close-btn { font-size: 2.2rem; cursor: pointer; color: #aaa; line-height: 1; margin-left: auto; transition: color 0.2s; }
         .close-btn:hover { color: var(--primary-teal); }
 
@@ -167,9 +208,16 @@
         .canvas-container {
             width: 100%; background-color: #f9f9f9; border: 1px solid var(--border-color);
             border-radius: 6px; display: flex; flex-direction: column; justify-content: flex-start; 
-            align-items: center; min-height: 250px; overflow-y: auto; padding: 1rem;
+            align-items: center; min-height: 250px; overflow: auto; padding: 1rem;
         }
-        .pdf-page-canvas { max-width: 100%; height: auto !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; border: 1px solid #ddd; }
+        .pdf-page-canvas { 
+            max-width: 100%; 
+            height: auto !important; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            margin: 0 auto 1rem auto; 
+            border: 1px solid #ddd; 
+            transition: width 0.3s ease;
+        }
         
         .btn-action {
             display: block; width: 100%; padding: 15px; background-color: var(--primary-teal); color: var(--bg-white); font-size: 1.1rem; font-weight: bold; text-align: center; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.3s;
@@ -232,15 +280,13 @@
     <header>
         <div class="logo-area">
             <a href="https://ibb.co.com/dJmDMT7p">
-                <img src="https://i.ibb.co.com/KzKWhPms/Screenshot-2026-09-13-112129.png" alt="Screenshot-2026-09-13-112129" border="0" class="logo-img">
+                <img src="https://i.ibb.co.com/KzKWhPms/Screenshot-2026-09-13-112129.png" alt="Logo" class="logo-img">
             </a>
         </div>
         <div class="header-actions">
-            <!-- Icon Kelola Drawing -->
             <button class="header-icon-btn btn-admin admin-only" onclick="openAdminModal()" title="Kelola Drawing">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
             </button>
-            <!-- Icon Keluar -->
             <button class="header-icon-btn btn-logout" onclick="logout()" title="Keluar Akun">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
@@ -263,7 +309,6 @@
     </div>
 
     <div class="type-nav">
-        <!-- Default Kosong -->
         <button class="type-btn" onclick="filterByTipe('A', this)">TIPE A</button>
         <button class="type-btn" onclick="filterByTipe('B', this)">TIPE B</button>
         <button class="type-btn" onclick="filterByTipe('C', this)">TIPE C</button>
@@ -295,6 +340,17 @@
             <p id="modalKeterangan" style="color: #555; margin-top: 5px; margin-bottom: 10px; line-height: 1.6;"></p>
             
             <div class="canvas-wrapper">
+                
+                <!-- CONTAINER ZOOM MENGGANTUNG -->
+                <div class="zoom-controls-wrapper">
+                    <button type="button" class="icon-btn zoom" onclick="aturZoom('reset')" title="Reset Zoom">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    </button>
+                    <button type="button" class="icon-btn zoom" onclick="aturZoom('in')" title="Perbesar Gambar (Zoom In)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                    </button>
+                </div>
+
                 <a href="#" id="btnViewFull" target="_blank" class="btn-view-full viewer-hide" title="Buka PDF Penuh">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>
@@ -361,6 +417,30 @@
 
         checkLoginStatus();
 
+        // --- SISTEM PROTEKSI MODE VIEWER ---
+        document.addEventListener('contextmenu', function(e) {
+            if (document.body.classList.contains('viewer-mode')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (document.body.classList.contains('viewer-mode')) {
+                if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'c' || e.key === 'u' || e.key === 'P' || e.key === 'S' || e.key === 'C' || e.key === 'U')) {
+                    e.preventDefault();
+                }
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            if (document.body.classList.contains('viewer-mode')) {
+                e.preventDefault();
+            }
+        });
+
         function showAdminForm() {
             document.getElementById('btnGroupAccess').style.display = 'none';
             document.getElementById('adminPasswordArea').style.display = 'block';
@@ -421,11 +501,32 @@
         const svgTrash = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
         const svgSpinner = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-anim"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
 
+        let skalaZoom = 100;
+        function aturZoom(aksi) {
+            if (aksi === 'in') {
+                skalaZoom += 50;
+                if (skalaZoom > 350) skalaZoom = 350; // Batas zoom in
+            } else { // Jika Reset
+                skalaZoom = 100;
+            }
+            
+            const kanvasPDF = document.querySelectorAll('.pdf-page-canvas');
+            kanvasPDF.forEach(kanvas => {
+                if (skalaZoom === 100) {
+                    kanvas.style.maxWidth = '100%';
+                    kanvas.style.width = 'auto';
+                } else {
+                    kanvas.style.maxWidth = 'none';
+                    kanvas.style.width = skalaZoom + '%';
+                }
+            });
+        }
+
         async function fetchData() {
             document.getElementById('loader').style.display = 'block';
             document.getElementById('katalog').innerHTML = '';
             
-            const { data, error } = await client.from('katalog_drawing').select('*');
+            const { data, error } = await client.from('katalog_drawing').select('*').order('kode_model', { ascending: true });
             document.getElementById('loader').style.display = 'none';
 
             if (error) {
@@ -529,16 +630,25 @@
         });
 
         function openDetail(kode) {
-            const item = database.find(b => b.kode_model === kode);
-            currentActiveItem = item; 
-
-            document.getElementById('modalTitle').innerText = item.kode_model;
-            document.getElementById('modalKeterangan').innerText = item.keterangan;
+            skalaZoom = 100;
             
-            document.getElementById('btnViewFull').href = item.url_file;
+            const item = database.find(b => b.kode_model === kode);
+            if (!item) return;
 
-            const loader = document.getElementById('pdfLoaderText');
+            currentActiveItem = item;
+            document.getElementById('modalTitle').innerText = item.kode_model;
+            document.getElementById('modalKeterangan').innerText = item.keterangan || "-";
+            
+            const btnViewFull = document.getElementById('btnViewFull');
+            if(item.url_file) {
+                btnViewFull.href = item.url_file;
+                btnViewFull.style.display = 'flex';
+            } else {
+                btnViewFull.style.display = 'none';
+            }
+
             const container = document.getElementById('pdfContainer');
+            const loader = document.getElementById('pdfLoaderText');
             
             loader.style.display = 'block';
             loader.innerText = 'Memproses Gambar...';
@@ -551,10 +661,14 @@
                     const page = await pdf.getPage(pageNum);
                     const canvas = document.createElement('canvas');
                     canvas.className = 'pdf-page-canvas';
+                    
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.width = 'auto';
+                    
                     container.appendChild(canvas);
                     
                     const ctx = canvas.getContext('2d');
-                    const viewport = page.getViewport({ scale: 2.0 });
+                    const viewport = page.getViewport({ scale: 2.5 }); 
 
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
