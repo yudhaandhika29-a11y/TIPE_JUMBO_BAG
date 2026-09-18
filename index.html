@@ -154,13 +154,12 @@
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 15px;
         }
         
-        /* LEBAR MODAL DIMAKSIMALKAN */
         .modal-content {
             background-color: var(--bg-white); 
             padding: 2rem; 
             border-radius: 12px; 
-            width: 96%; /* Diperbesar hingga 96% dari layar */
-            max-width: 1600px; /* Batas maksimal diperlebar */
+            width: 96%; 
+            max-width: 1600px; 
             position: relative; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
             max-height: 95vh; 
@@ -172,14 +171,12 @@
         .icon-btn.edit:hover { color: var(--primary-teal); background-color: #e0f2f1; transform: scale(1.1); }
         .icon-btn.delete:hover { color: var(--danger-red); background-color: #fadbd8; transform: scale(1.1); }
         
-        /* TOMBOL ZOOM BARU */
         .icon-btn.zoom { background-color: var(--gray-light); border: 1px solid var(--border-color); padding: 8px 12px; color: var(--primary-teal); }
         .icon-btn.zoom:hover { background-color: #e0f2f1; border-color: var(--primary-teal); transform: scale(1.05); }
 
-        /* MEMBUAT CONTAINER ZOOM MENGGANTUNG (STICKY) */
         .zoom-controls-wrapper {
             position: sticky;
-            top: -15px; /* Offset dari padding atas modal */
+            top: -15px;
             z-index: 100;
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
@@ -236,6 +233,7 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin-anim { animation: spin 1s linear infinite; }
 
+        /* --- PENGATURAN FULL SCREEN KHUSUS TAMPILAN HP --- */
         @media (max-width: 768px) { 
             header { padding: 15px 5%; flex-direction: row; }
             .logo-img { max-height: 28px; }
@@ -246,8 +244,42 @@
             .search-box input { padding: 12px 10px; font-size: 1rem; }
             .type-nav { gap: 10px; padding: 1.5rem 5%; }
             .type-btn { padding: 8px 10px; font-size: 0.9rem; flex: 1 1 40%; text-align: center; }
-            .modal-content { padding: 1.5rem; width: 95%; }
-            .canvas-container { padding: 0.5rem; }
+            
+            /* Hapus jarak luar agar Modal menyentuh layar penuh */
+            .modal { padding: 0; } 
+            
+            /* Hapus jarak kanan kiri, jadikan layar penuh */
+            .modal-content { 
+                padding: 1.5rem 0 2rem 0; 
+                width: 100%; 
+                min-height: 100vh;
+                border-radius: 0;
+            }
+            
+            /* Kembalikan padding khusus untuk Teks dan Tombol agar tidak mentok tepi layar */
+            .modal-header-actions, #modalTitle, #modalKeterangan, .zoom-controls-wrapper { 
+                padding-left: 15px; 
+                padding-right: 15px; 
+            }
+            #waShareBtn {
+                width: calc(100% - 30px);
+                margin: 15px auto 0;
+            }
+            
+            /* Bersihkan jarak dan garis pada kontainer gambar */
+            .canvas-container { 
+                padding: 0; 
+                border: none; 
+                border-radius: 0;
+            }
+            .canvas-wrapper { margin: 5px 0; }
+            
+            /* Hapus garis tepi gambar PDF di HP */
+            .pdf-page-canvas { 
+                border: none; 
+                margin-bottom: 8px;
+            }
+            
             #modalTitle { font-size: 1.4rem; }
             .btn-view-full { top: 8px; right: 8px; width: 35px; height: 35px; }
             .card { padding: 1rem 1.5rem; }
@@ -505,8 +537,8 @@
         function aturZoom(aksi) {
             if (aksi === 'in') {
                 skalaZoom += 50;
-                if (skalaZoom > 350) skalaZoom = 350; // Batas zoom in
-            } else { // Jika Reset
+                if (skalaZoom > 350) skalaZoom = 350;
+            } else { 
                 skalaZoom = 100;
             }
             
@@ -514,7 +546,8 @@
             kanvasPDF.forEach(kanvas => {
                 if (skalaZoom === 100) {
                     kanvas.style.maxWidth = '100%';
-                    kanvas.style.width = 'auto';
+                    // Paksa width 100% saat reset agar mengisi layar penuh
+                    kanvas.style.width = '100%'; 
                 } else {
                     kanvas.style.maxWidth = 'none';
                     kanvas.style.width = skalaZoom + '%';
@@ -663,7 +696,8 @@
                     canvas.className = 'pdf-page-canvas';
                     
                     canvas.style.maxWidth = '100%';
-                    canvas.style.width = 'auto';
+                    // Paksa 100% pada render awal agar otomatis penuh di HP
+                    canvas.style.width = '100%'; 
                     
                     container.appendChild(canvas);
                     
